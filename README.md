@@ -1,2 +1,3 @@
-# unemployment_modeling
-New and old macroeconomic models of unemployment .
+# Unemployment Modeling
+
+In this repo I replicate models of unemployment used in the macroeconomics literature. 
