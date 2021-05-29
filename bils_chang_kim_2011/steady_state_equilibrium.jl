@@ -44,8 +44,28 @@ end
 """
     InitializeWageValueDecision()
 """
-function InitializeWageValueDecision()
-
+function InitializeWageValueDecision(para::InitializeParameters)
+    @unpack prod, β, λ, UI, B_leisure, match_prob, agrid, β_monthly = para 
+    βpth = 1.0/(1-β*(1-λ)+β*match_prob) 
+    N = length(agrid) 
+    AE = zeros(N)
+    AU = zeros(N) 
+    Wage = zeros(N)
+    Util_W = zeros(N)
+    Util_U = zeros(N)
+    W = zeros(N)
+    U = zeros(N)
+    J = zeros(N) 
+    for i in 1:N 
+        AE[i] = agrid(i) 
+        AU[i] = agrid(i)
+        Wage[i] = prod 
+        Util_W = log(irate_monthly*agrid[i]+Wage[i])
+        Util_U = log(irate_monthly*agrid[i]+UI) + B_leisure 
+        W[i] = (Util_W - β*λ*βpth*(Util_W-Util_U))/(1-β)
+        U[i] = (Util_U - β*match_prob*βpth*(Util_W-Util_U))/(1-β)
+        J[i] = (prod-Wage[i])/(1.0-β_monthly*(1.0-λ))
+    end 
 end 
 
 # ###################################
