@@ -87,6 +87,13 @@ end
 # Find equilibriun Nash-bargaining wages 
 
 """
+    SolveValueFunctions()
+"""
+function SolveValueFunctions()
+
+end 
+
+"""
     EquilibriumWage()
 """ 
 function EquilibriumWage()
