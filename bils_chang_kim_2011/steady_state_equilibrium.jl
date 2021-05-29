@@ -32,6 +32,9 @@ mutable struct InitializeParameters()
     amin::Float64 = -6.0 # minimum asset 
     amax::Float64 = 120.0 # maximum asset 
     agrid::Vector{Float64} = LinRange(amin, amax, 100) # asset grid 
+    irate_monthly::Float64 = (1.0 + irate)^(1.0/12.0) - 1.0 # monthly interest rate 
+    β_monthly::Float64 = 1.0/(1.0 + irate_monthly) # monthly depreciation rate 
+    match_prob::Float64 = match_scale*θ^(match_pow) # matching probability 
 end 
 
 # ###################################
