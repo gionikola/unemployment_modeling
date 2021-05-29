@@ -1,19 +1,38 @@
+using Parameters 
+using LinearAlgebra 
+using Statistics
+using BasisMatrices
+using Distributions
+using Optim
+using BasisMatrices 
+using SparseArrays 
+using Plots 
+using LaTeXStrings 
+
 # ###################################
 # ###################################
 # Initialize parameters & asset grids
 
 """
-    InitializeParameters() 
+    InitializeParameters()  
 """
-function InitializeParameters() 
-
-end 
-
-"""
-    InitializeGrid()
-"""
-function InitializeGrid() 
-
+mutable struct InitializeParameters() 
+    prod::Float64 # output
+    irate::Float64 # annual interest rate 
+    α::Float64 # worker's share of surplus 
+    β::Float64 # discount factor 
+    γ::Float64 # curvature of utility function 
+    λ::Float64 # exogenous separation rate 
+    UI::Float64  # UI benefits 
+    B_leisure::Float64 # utility from leisure 
+    κ::Float64 # vacancy posting cost with log utility 
+    match_pow::Float64 # power term in the matching function 
+    match_scale::Float64 # scale parameter in the matching function 
+    θ::Float64 # labor market tightness, v/u, normalized to 1
+    amin::Float64 # minimum asset 
+    amax::Float64 # maximum asset 
+    # asset grid 
+    agrid::Vector{Float64} = LinRange(amin, amax, 100)
 end 
 
 # ###################################
