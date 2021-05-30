@@ -17,7 +17,7 @@ using FastGaussQuadrature
 # Initialize parameters & asset grids
 
 """
-    Parameters  
+    Parameters
 """
 @with_kw mutable struct Parameters
     A::Float64              = 1.0 # output productivity factor
