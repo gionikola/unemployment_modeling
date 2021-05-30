@@ -112,7 +112,7 @@ function SolveValueFunctions(para::InitializeParameters)
         EV_U = match_prob*W + (1.0 - match_prob)*U 
 
         # Employed worker's utility maximization 
-
+        
 
     end 
 
