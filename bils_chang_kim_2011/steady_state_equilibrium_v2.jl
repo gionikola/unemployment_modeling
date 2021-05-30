@@ -36,6 +36,6 @@ using FastGaussQuadrature
     amax::Float64           = 120.0 # maximum asset 
     agrid::Vector{Float64}  = LinRange(amin, amax, 100) # asset grid 
     r_mon::Float64          = (1.0 + r)^(1.0/12.0) - 1.0 # monthly interest rate 
-    β_mon::Float64          = 1.0/(1.0 + r_monthly) # monthly depreciation rate 
+    β_mon::Float64          = 1.0/(1.0 + r_mon) # monthly depreciation rate 
     match_prob::Float64     = match_scale*θ^(match_pow) # matching probability 
 end 
