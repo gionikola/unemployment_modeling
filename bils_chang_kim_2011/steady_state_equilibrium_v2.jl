@@ -50,7 +50,7 @@ end
 """
 Household Bernoulli utility function
 """
-function utility(para::ModelParams, c::Real, l::Real)
+function utility(para::ModelParams, c::Real)
     
     γ = para.γ # Store risk-aversion parameter
     B = para.B # Store the leisure utility coefficient
@@ -59,13 +59,28 @@ function utility(para::ModelParams, c::Real, l::Real)
     # condition on the input `c`
     if c > 0 
         if γ == 1
-          return log(c) + B*l # if σ = 1, CRRA utility is log
+          return log(c) # if σ = 1, CRRA utility is log
         else
-          return (c^(1-γ)-1)/(1-γ) + B*l # if σ != 1, regular specification
+          return (c^(1-γ)-1)/(1-γ) # if σ != 1, regular specification
         end
     else
         return -Inf # infinite disutility if c∈(-∞,0]
     end
+end;
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# 
+"""
+Household Bernoulli utility function applied to a vector
+"""
+function utility(para::ModelParams, cvec)
+
+  u(c) = utility(para,c)
+
+  return u.(cvec)
 end;
 
 # ######################################################################
@@ -130,17 +145,18 @@ end
 
 Iterates on the bellman equation using continuation value function.
 """
-function iterateBellman(para::ModelParams, W_old, U_old, J_old, V_old)
+function iterateBellman(para::ModelParams, wages, W_old, U_old)
 
-    @unpack agrid, xgrid, π_x = para #unpack parameters
+    @unpack agrid, xgrid, π_x = para 
+    @unpack β, p_θ, q_θ = para 
+    
+    u(c) = utility(para,c) #shorthand for utility
 
-    u(c,l) = utility(para,c,l) #shorthand for utility
+    W_new = similar(W_old)
+    U_new = similar(U_old) 
 
     N_x = length(xgrid)
     N_a = length(agrid)
-
-    #solve for each state
-    #preallocate space for V and a_policy
 
     for x_i  in 1:N_x
         for a_i_ in 1:N_a
@@ -151,5 +167,5 @@ function iterateBellman(para::ModelParams, W_old, U_old, J_old, V_old)
         end
     end
 
-    return W_new, U_new, J_new, V_new 
+    return W_new, U_new
 end;
