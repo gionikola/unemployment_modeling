@@ -205,6 +205,8 @@ W_new, U_new, emp_policy, unemp_policy = HHBellmanMap(para, wage, W_old, U_old)
 """
 function SolveHHBellman(para::ModelParams, wage, W0, U0, ϵ=1e-6)
 
+    @unpack xgrid = para 
+
     W_old = W0
     U_old = U0 
     emp_policy      = similar(W_old, Int)
@@ -219,9 +221,29 @@ function SolveHHBellman(para::ModelParams, wage, W0, U0, ϵ=1e-6)
         U_old = U_new 
     end
     
-    W_new, U_new, emp_policy, unemp_policy = HHBellmanMap(para, wage, W_old, U_old)
+    W, U, emp_policy, unemp_policy = HHBellmanMap(para, wage, W_old, U_old)
 
-    return W_new, U_new, emp_policy, unemp_policy
+    x_star = zeros(length(U))
+
+    for i in 1:length(U)
+        acc = zeros(length(W[1,:]))
+        for j in 1:length(W[1,:])
+            if U[i] > W[i,j]
+                acc[j] = 1
+            end 
+        end 
+        x_star[i] = floor(Int, sum(acc))
+    end 
+    x_star = floor.(Int, x_star)
+    xstar = zeros(length(x_star))
+    for i in 1:3
+        if x_star[i] > 0
+            xstar[i] = xgrid[x_star[i]]
+        end 
+    end 
+    x_star = copy(xstar) 
+
+    return W, U, emp_policy, unemp_policy, x_star 
 end;
 
 # ######################################################################
@@ -233,8 +255,8 @@ end;
 para  = ModelParams() 
 W_old = ones(length(para.agrid),length(para.xgrid))
 U_old = ones(length(para.agrid))
-wage  = ones(length(para.agrid),length(para.xgrid))
-W, U, emp_policy, unemp_policy = SolveHHBellman(para, wage, W_old, U_old)
+wage  = randn(length(para.agrid),length(para.xgrid)).^2
+W, U, emp_policy, unemp_policy, x_star = SolveHHBellman(para, wage, W_old, U_old)
 
 # ######################################################################
 # ######################################################################
