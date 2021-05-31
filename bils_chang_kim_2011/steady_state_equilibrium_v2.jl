@@ -145,34 +145,36 @@ end
 
 Iterates on the bellman equation using continuation value function.
 """
-function HHBellmanMap(para::ModelParams, wages, W_old, U_old)
+function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
 
-    @unpack agrid, xgrid, π_x = para 
-    @unpack β, b, B, p_θ, q_θ = para 
+    @unpack agrid, xgrid, π_x, β, b, B, p_θ   = para 
     
     u(c) = utility(para,c) #shorthand for utility
 
-    W_new = similar(W_old)
-    U_new = similar(U_old) 
+    W_new           = similar(W_old)
+    U_new           = similar(U_old)
+    emp_policy      = similar(W_new, Int)
+    unemp_policy    = similar(U_new, Int) 
 
     N_x = length(xgrid)
     N_a = length(agrid)
 
-    emp_policy      = similar(W_new, Int)
-    unemp_policy    = similar(U_new, Int)
+    EU      = π_x' * U_old
+    EWx̄     = π_x' * W_old[:,N_x]
 
     for x_i  in 1:N_x
         for a_i in 1:N_a
             
-            cvec_emp = (1+r)*agrid[a_i] + wages[a_i,x_i] - agrid
-            cvec_unemp = (1+r)*agrid[a_i] + b - agrid
-
-            obj_emp = u(cvec_emp) + β * 
-            obj_unemp = u(cvec_unemp) + β *
-
+            cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] - agrid
+            EmaxWU =  π_x' * max.(W_old[:,x_i], U_old)
+            obj_emp     = u(cvec_emp) + B + β * EmaxWU
             W_new[a_i,x_i], emp_policy[a_i,x_i] = findmax(obj_emp)
-            U_new[a_i], unemp_policy[a_i] = findmax(obj_unemp)
 
+            if x_i == N_x 
+                cvec_unemp = (1+r)*agrid[a_i] + b - agrid
+                obj_unemp   = u(cvec_unemp) + β*(1-p_θ)*EU + β*(p_θ)*EWx̄
+                U_new[a_i], unemp_policy[a_i] = findmax(obj_unemp)
+            end     
         end
     end
 
