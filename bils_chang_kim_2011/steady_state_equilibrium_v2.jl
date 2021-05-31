@@ -313,7 +313,7 @@ function SolveWage(para::ModelParams, ϵ=1e-6)
     W_old       = ones(length(para.agrid),length(para.xgrid))
     U_old       = ones(length(para.agrid))
     wage_old    = ones(length(para.agrid),length(para.xgrid)).^2
-    difff        = 10
+    difff       = 10
     counter     = 0
 
     while difff > ϵ 
@@ -340,3 +340,9 @@ end
 # Test out SolveWage() 
 
 W, U, J, emp_policy, unemp_policy, x_star, wage = SolveWage(ModelParams())
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# 
