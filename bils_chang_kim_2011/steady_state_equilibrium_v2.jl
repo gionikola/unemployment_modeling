@@ -89,7 +89,7 @@ end;
 # ######################################################################
 # 
 """
-    TauchenApprox
+    TauchenApprox()
 """
 function TauchenApprox(N::Integer, ρ::T1, σ::T2, μ=zero(promote_type(T1, T2)), n_std::Integer=3) where {T1 <: Real, T2 <: Real}
     
@@ -141,14 +141,14 @@ end
 # ######################################################################
 # 
 """
-  iterateBellman()
+  HHBellmanMap()
 
 Iterates on the bellman equation using continuation value function.
 """
-function iterateBellman(para::ModelParams, wages, W_old, U_old)
+function HHBellmanMap(para::ModelParams, wages, W_old, U_old)
 
     @unpack agrid, xgrid, π_x = para 
-    @unpack β, p_θ, q_θ = para 
+    @unpack β, b, B, p_θ, q_θ = para 
     
     u(c) = utility(para,c) #shorthand for utility
 
@@ -158,14 +158,23 @@ function iterateBellman(para::ModelParams, wages, W_old, U_old)
     N_x = length(xgrid)
     N_a = length(agrid)
 
+    emp_policy      = similar(W_new, Int)
+    unemp_policy    = similar(U_new, Int)
+
     for x_i  in 1:N_x
-        for a_i_ in 1:N_a
-            for a′_i in 1:N_a 
-                
-            end 
+        for a_i in 1:N_a
+            
+            cvec_emp = (1+r)*agrid[a_i] + wages[a_i,x_i] - agrid
+            cvec_unemp = (1+r)*agrid[a_i] + b - agrid
+
+            obj_emp = u(cvec_emp) + β * 
+            obj_unemp = u(cvec_unemp) + β *
+
+            W_new[a_i,x_i], emp_policy[a_i,x_i] = findmax(obj_emp)
+            U_new[a_i], unemp_policy[a_i] = findmax(obj_unemp)
 
         end
     end
 
-    return W_new, U_new
+    return W_new, U_new, emp_policy, unemp_policy
 end;
