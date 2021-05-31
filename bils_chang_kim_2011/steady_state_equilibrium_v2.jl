@@ -305,3 +305,33 @@ wage_new, J = UpdateWage(para, W, U, emp_policy, wage)
 # ######################################################################
 # ######################################################################
 # 
+"""
+    SolveWage()
+""" 
+function SolveWage(para::ModelParams, ϵ=1e-6)
+    
+    W_old       = ones(length(para.agrid),length(para.xgrid))
+    U_old       = ones(length(para.agrid))
+    wage_old    = randn(length(para.agrid),length(para.xgrid)).^2
+    
+    while diff > ϵ 
+        W_new, U_new, emp_policy    = SolveHHBellman(para, wage_old, W_old, U_old)
+        wage_new                    = UpdateWage(para, W_new, U_new, emp_policy, wage_old)
+        diff        = norm(wage_new - wage_old)
+        wage_old    = wage_new
+        W_old       = W_new 
+        U_old       = U_new 
+    end 
+    
+    W, U, emp_policy, unemp_policy, x_star      = SolveHHBellman(para, wage_old, W_old, U_old)
+    wage, J                                     = UpdateWage(para, W, U, emp_policy, wage)
+
+    return W, U, J, emp_policy, unemp_policy, x_star, wage 
+end 
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# Test out SolveWage() 
+
