@@ -200,3 +200,32 @@ W_new, U_new, emp_policy, unemp_policy = HHBellmanMap(para, wage, W_old, U_old)
 # ######################################################################
 # ######################################################################
 # 
+"""
+    SolveHHBellman()
+"""
+function SolveHHBellman(para::ModelParams, wage, W0, U0, ϵ=1e-6)
+
+    W_old = W0
+    U_old = U0 
+    emp_policy      = similar(W_old, Int)
+    unemp_policy    = similar(U_old, Int) 
+
+    diff = 1.
+
+    while diff > ϵ
+        W_new, U_new = HHBellmanMap(para, wage, W_old, U_old)
+        diff = norm((U_new-U_old)[:],Inf)
+        W_old = W_new 
+        U_old = U_new 
+    end
+    
+    W_new, U_new, emp_policy, unemp_policy = HHBellmanMap(para, wage, W_old, U_old)
+
+    return W_new, U_new, emp_policy, unemp_policy
+end;
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# 
