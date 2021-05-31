@@ -147,7 +147,7 @@ Iterates on the bellman equation using continuation value function.
 """
 function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
 
-    @unpack agrid, xgrid, π_x, β, b, B, p_θ   = para 
+    @unpack agrid, xgrid, π_x, β, b, B, p_θ, r   = para 
     
     u(c) = utility(para,c) #shorthand for utility
 
@@ -159,20 +159,22 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
     N_x = length(xgrid)
     N_a = length(agrid)
 
-    EU      = π_x' * U_old
-    EWx̄     = π_x' * W_old[:,N_x]
+    EU      = U_old 
+    EWx̄     = W_old[:,N_x]
 
     for x_i  in 1:N_x
         for a_i in 1:N_a
             
-            cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] - agrid
-            EmaxWU =  π_x' * max.(W_old[:,x_i], U_old)
-            obj_emp     = u(cvec_emp) + B + β * EmaxWU
+            cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] .- agrid
+            EmaxWU =  max.(W_old*π_x, U_old)
+            obj_emp     = u(cvec_emp) .+ B .+ β * EmaxWU
+            obj_emp     = vec(obj_emp)
             W_new[a_i,x_i], emp_policy[a_i,x_i] = findmax(obj_emp)
 
             if x_i == N_x 
-                cvec_unemp = (1+r)*agrid[a_i] + b - agrid
-                obj_unemp   = u(cvec_unemp) + β*(1-p_θ)*EU + β*(p_θ)*EWx̄
+                cvec_unemp = (1+r)*agrid[a_i] + b .- agrid
+                obj_unemp   = u(cvec_unemp) .+ β*(1-p_θ)*EU .+ β*(p_θ)*EWx̄
+                obj_unemp   = vec(obj_unemp) 
                 U_new[a_i], unemp_policy[a_i] = findmax(obj_unemp)
             end     
         end
@@ -180,3 +182,21 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
 
     return W_new, U_new, emp_policy, unemp_policy
 end;
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# Test out HHBellmanMap()  
+
+para  = ModelParams() 
+W_old = ones(length(para.agrid),length(para.xgrid))
+U_old = ones(length(para.agrid))
+wage  = ones(length(para.agrid),length(para.xgrid))
+W_new, U_new, emp_policy, unemp_policy = HHBellmanMap(para, wage, W_old, U_old)
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# 
