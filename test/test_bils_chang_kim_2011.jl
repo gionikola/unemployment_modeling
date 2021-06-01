@@ -1,6 +1,6 @@
 
 include("bils_chang_kim_2011/steady_state_equilibrium.jl")
-using Main.SteadyStateEquilibrium
+using Main.SSEquilibrium
 
 # ######################################################################
 # ######################################################################

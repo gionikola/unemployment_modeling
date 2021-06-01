@@ -1,5 +1,5 @@
 
-module SteadyStateEquilibrium
+module SSEquilibrium
 
 export ModelParams, utility, TauchenApprox, HHBellmanMap, SolveHHBellman, UpdateWage, SolveWage 
 
@@ -18,8 +18,8 @@ using SpecialFunctions
 # ######################################################################
 # Initialize parameters & asset grids
 
-"""
-    ModelParams
+@doc """
+    ModelParams()
 """
 @with_kw mutable struct ModelParams
     A::Float64              = 1.0                           # output productivity factor
@@ -93,8 +93,8 @@ end;
 # ######################################################################
 # ######################################################################
 # 
-"""
-    TauchenApprox()
+@doc """
+    TauchenApprox() test test 
 """
 function TauchenApprox(N::Integer, ρ::T1, σ::T2, μ=zero(promote_type(T1, T2)), n_std::Integer=3) where {T1 <: Real, T2 <: Real}
     
