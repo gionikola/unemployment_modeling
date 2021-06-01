@@ -17,7 +17,9 @@ using SpecialFunctions
 # Initialize parameters & asset grids
 
 @doc """
-    ModelParams()
+    ModelParams
+
+A structure containing all model parameters, including asset and matching productivity shock grids. 
 """
 @with_kw mutable struct ModelParams
     A::Float64              = 1.0                           # output productivity factor
@@ -50,8 +52,10 @@ end
 # ######################################################################
 # ######################################################################
 # 
-"""
-Household Bernoulli utility function
+@doc """
+    utility(para::ModelParams, c::Real)
+
+Household Bernoulli utility function.
 """
 function utility(para::ModelParams, c::Real)
     
@@ -76,8 +80,10 @@ end;
 # ######################################################################
 # ######################################################################
 # 
-"""
-Household Bernoulli utility function applied to a vector
+@doc """
+    utility(para::ModelParams, cvec)
+
+Household Bernoulli utility function applied to a vector.
 """
 function utility(para::ModelParams, cvec)
 
@@ -92,7 +98,14 @@ end;
 # ######################################################################
 # 
 @doc """
-    TauchenApprox() test test 
+    TauchenApprox(N, ρ, σ, μ, n_std) 
+
+Tauchen's (1996) method for approximating AR(1) process with finite markov chain.
+
+**Output:**
+⋅ transition    -- Estimated transition matrix
+⋅ distribution  -- Estimated stationary distribution (vector)
+⋅ state_values  -- Etimated state values (vector) 
 """
 function TauchenApprox(N::Integer, ρ::T1, σ::T2, μ=zero(promote_type(T1, T2)), n_std::Integer=3) where {T1 <: Real, T2 <: Real}
     
@@ -143,10 +156,16 @@ end
 # ######################################################################
 # ######################################################################
 # 
-"""
-  HHBellmanMap()
+@doc """
+    HHBellmanMap(para::ModelParams, wage, W_old, U_old)
 
 Iterates on the bellman equation using continuation value function.
+
+**Output:**
+⋅ W_new         -- Updated value of employment (matrix) 
+⋅ U_new         -- Updated value of unemployment (vector) 
+⋅ emp_policy    -- Asset policy function in case of employment (matrix)
+⋅ unemp_policy  -- Asset policy function in case of unemployment (vector) 
 """
 function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
 
@@ -191,8 +210,17 @@ end;
 # ######################################################################
 # ######################################################################
 # 
-"""
-    SolveHHBellman()
+@doc """
+    SolveHHBellman(para::ModelParams, wage, W0, U0, ϵ=1e-6)
+
+Iterates on the Bellman map until convergence. 
+
+**Output:**
+⋅ W             -- Approximated value of employment (matrix)
+⋅ U             -- Approximated value of unemployment (vector) 
+⋅ emp_policy    -- Approximated asset policy function in case of employment (matrix)
+⋅ unemp_policy  -- Approximated asset policy function in case of unemployment (vector) 
+⋅ x_star        -- Approximated reservation match productivity level (vector) 
 """
 function SolveHHBellman(para::ModelParams, wage, W0, U0, ϵ=1e-6)
 
@@ -242,8 +270,14 @@ end;
 # ######################################################################
 # ######################################################################
 # 
-"""
-    UpdateWage()
+@doc """
+    UpdateWage(para::ModelParams, W, U, emp_policy, wage_old)
+
+Applies step #3(c) of the Bils, Chang, and Kim (2011) steady state equilibrium algorithm to update the wage, w¹(a,x;θ⁰), object.
+
+**Output:**
+⋅ wage_new  -- New iteration of the wage mapping (matrix) 
+⋅ J         -- New iteration of the value of a matched job (matrix)
 """
 function UpdateWage(para::ModelParams, W, U, emp_policy, wage_old)
 
@@ -276,8 +310,18 @@ end
 # ######################################################################
 # ######################################################################
 # 
-"""
-    SolveWage()
+@doc """
+    SolveWage(para::ModelParams, ϵ=1e-6)
+
+Applies steps #1-3 of the Bils, Chang, and Kim (2011) steady state equilibrium algorithm to obtain value functions, policy functions, and the wage mapping.
+
+**Output:**
+⋅ W             -- Approximated value of employment (matrix)
+⋅ U             -- Approximated value of unemployment (vector) 
+⋅ emp_policy    -- Approximated asset policy function in case of employment (matrix)
+⋅ unemp_policy  -- Approximated asset policy function in case of unemployment (vector) 
+⋅ x_star        -- Approximated reservation match productivity level (vector)
+⋅ wage          -- Approximated wage mapping (matrix) 
 """ 
 function SolveWage(para::ModelParams, ϵ=1e-6)
     
