@@ -5,10 +5,8 @@ export ModelParams, utility, TauchenApprox, HHBellmanMap, SolveHHBellman, Update
 
 using Parameters 
 using LinearAlgebra 
-using Statistics
 using Distributions
 using Optim
-using SparseArrays 
 using QuantEcon
 using SpecialFunctions
 
