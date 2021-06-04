@@ -193,7 +193,7 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
             obj_emp     = vec(obj_emp)
             W_new[a_i,x_i], emp_policy[a_i,x_i] = findmax(obj_emp)
 
-            if x_i == N_x 
+            if x_i == 5 
                 cvec_unemp = (1+r)*agrid[a_i] + b .- agrid
                 obj_unemp   = u(cvec_unemp) .+ B .+ β*(1-p_θ)*EU .+ β*(p_θ)*EWx̄
                 obj_unemp   = vec(obj_unemp) 
