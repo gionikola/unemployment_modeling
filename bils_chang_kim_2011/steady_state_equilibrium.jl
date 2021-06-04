@@ -323,7 +323,12 @@ function SolveWage(para::ModelParams, ϵ=1e-6)
     
     W_old       = ones(length(para.agrid),length(para.xgrid))
     U_old       = ones(length(para.agrid))
-    wage_old    = 10*ones(length(para.agrid),length(para.xgrid)).^2
+    wage_old    = ones(length(para.agrid),length(para.xgrid))
+    for i in 1:length(para.agrid)
+        for j in 1:length(para.xgrid)
+            wage_old[i,j] = i*j 
+        end 
+    end 
     difff       = 10
     counter     = 0
 
@@ -342,7 +347,7 @@ function SolveWage(para::ModelParams, ϵ=1e-6)
     wage, J                                     = UpdateWage(para, W, U, emp_policy, wage_old)
 
     return W, U, J, emp_policy, unemp_policy, x_star, wage 
-end 
+end
 
 # ######################################################################
 # ######################################################################
