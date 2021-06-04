@@ -182,7 +182,7 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
     N_a = length(agrid)
 
     EU      = U_old 
-    EWx̄     = W_old[:,N_x]
+    EWx̄     = W_old[:,5]
 
     for x_i  in 1:N_x
         for a_i in 1:N_a
