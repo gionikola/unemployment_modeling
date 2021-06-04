@@ -1,7 +1,7 @@
 
-module SSEquilibrium
+#module SSEquilibrium
 
-export ModelParams, utility, TauchenApprox, HHBellmanMap, SolveHHBellman, UpdateWage, SolveWage 
+#export ModelParams, utility, TauchenApprox, HHBellmanMap, SolveHHBellman, UpdateWage, SolveWage 
 
 using Parameters 
 using LinearAlgebra 
@@ -289,15 +289,15 @@ function UpdateWage(para::ModelParams, W, U, emp_policy, wage_old)
     J = zeros(N_a, N_x)
     wage_new = similar(wage_old)
 
-    for a_i in N_a
-        for x_i in N_x
+    for a_i in 1:N_a
+        for x_i in 1:N_x
             c_e = (1+r)*agrid[a_i] + wage_old[a_i,x_i] - emp_policy[a_i,x_i]
             J[a_i,x_i] = ((1-α)/α)*(W[a_i,x_i] - U[a_i])*c_e 
         end 
     end 
 
-    for a_i in N_a
-        for x_i in N_x
+    for a_i in 1:N_a
+        for x_i in 1:N_x
             wage_new[a_i,x_i] = 1*xgrid[x_i] - J[a_i,x_i] + β*(1-λ)*max(reduce(vcat,J[emp_policy[a_i,x_i],:]'*π_x),0.0)
         end 
     end 
@@ -361,4 +361,4 @@ end
 # ######################################################################
 # 
 
-end 
+#end 
