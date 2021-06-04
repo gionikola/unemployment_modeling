@@ -24,7 +24,14 @@ W_new, U_new, emp_policy, unemp_policy = HHBellmanMap(para, wage, W_old, U_old)
 para  = ModelParams() 
 W_old = ones(length(para.agrid),length(para.xgrid))
 U_old = ones(length(para.agrid))
-wage  = 10*randn(length(para.agrid),length(para.xgrid)).^2
+#wage  = 10*randn(length(para.agrid),length(para.xgrid)).^2
+wage = ones(length(para.agrid),length(para.xgrid))
+for i in 1:length(para.agrid)
+    for j in 1:length(para.xgrid)
+        wage[i,j] = i*j 
+    end 
+end 
+
 W, U, emp_policy, unemp_policy, x_star = SolveHHBellman(para, wage, W_old, U_old)
 
 using Plots
