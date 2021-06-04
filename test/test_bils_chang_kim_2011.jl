@@ -31,11 +31,15 @@ using Plots
 
 plot(1:length(U),U)
 
-fig = plot()
+fig = plot();
 for i in 1:9
-    plot!(fig, 1:length(W[:,i]), W[:,i])
+    plot!(fig, 1:length(W[:,i]), W[:,i]);
 end 
 plot(fig) 
+
+fig2 = plot();
+plot!(fig2, 1:length(U), U);
+plot(fig2)
 
 # ######################################################################
 # ######################################################################
@@ -43,7 +47,9 @@ plot(fig)
 # ######################################################################
 # Test out UpdateWage() 
 
-wage_new, J = UpdateWage(para, W, U, emp_policy, wage)
+wage_old = wage 
+wage_new, J = UpdateWage(para, W, U, emp_policy, wage_old)
+wage_old = wage_new 
 
 # ######################################################################
 # ######################################################################
