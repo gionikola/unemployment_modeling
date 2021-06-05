@@ -45,7 +45,7 @@ A structure containing all model parameters, including asset and matching produc
     σ_x::Float64            = 0.13                          # std. dev. of innovation to ln(x) 
     π_x                     = TauchenApprox(9, ρ_x, σ_x).distribution           # probability weights on ln(x) 
     xgrid                   = exp.(TauchenApprox(9, ρ_x, σ_x).state_values)     # match productivity grid 
-end 
+end;
 
 # ######################################################################
 # ######################################################################
@@ -149,7 +149,7 @@ function TauchenApprox(N::Integer, ρ::T1, σ::T2, μ=zero(promote_type(T1, T2))
     π0 = copy(π0') 
 
     return (transition = Π, distribution = π0, state_values = ȳ)
-end
+end;
 
 # ######################################################################
 # ######################################################################
@@ -185,7 +185,8 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
         for a_i in 1:N_a
             
             cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] .- agrid
-            obj_emp     = u(cvec_emp) .+ β * max.(W_old[:,x_i], U_old)
+            #sum( w[i]*max(V′(μ′[i]), J′) for i in 1:N)
+            obj_emp     = u(cvec_emp) .+ β * sum( π_x[i]*max.(W_old[:,i], U_old) for i in 1:N_x)
             obj_emp     = vec(obj_emp)
             W_new[a_i,x_i], emp_policy[a_i,x_i] = findmax(obj_emp)
 
@@ -299,7 +300,7 @@ function UpdateWage(para::ModelParams, W, U, emp_policy, wage_old)
     end 
 
     return wage_new, J 
-end 
+end;
 
 # ######################################################################
 # ######################################################################
@@ -347,7 +348,7 @@ function SolveWage(para::ModelParams, ϵ=1e-6)
     wage, J                                     = UpdateWage(para, W, U, emp_policy, wage_old)
 
     return W, U, J, emp_policy, unemp_policy, x_star, wage 
-end
+end;
 
 # ######################################################################
 # ######################################################################

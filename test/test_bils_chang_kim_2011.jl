@@ -41,7 +41,6 @@ for i in 1:9
     plot!(fig, 1:length(W[:,i]), W[:,i]);
 end 
 plot(fig) 
-
 fig2 = plot();
 plot!(fig2, 1:length(U), U);
 plot(fig2)
