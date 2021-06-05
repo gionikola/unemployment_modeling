@@ -185,7 +185,6 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
         for a_i in 1:N_a
             
             cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] .- agrid
-            #sum( w[i]*max(V′(μ′[i]), J′) for i in 1:N)
             obj_emp     = u(cvec_emp) .+ β * sum( π_x[i]*max.(W_old[:,i], U_old) for i in 1:N_x)
             obj_emp     = vec(obj_emp)
             W_new[a_i,x_i], emp_policy[a_i,x_i] = findmax(obj_emp)
@@ -295,7 +294,7 @@ function UpdateWage(para::ModelParams, W, U, emp_policy, wage_old)
 
     for a_i in 1:N_a
         for x_i in 1:N_x
-            wage_new[a_i,x_i] = 1*xgrid[x_i] - J[a_i,x_i] + β*(1-λ)*max(reduce(vcat,J[emp_policy[a_i,x_i],:]'*π_x),0.0)
+            wage_new[a_i,x_i] = 1*xgrid[x_i] - J[a_i,x_i] + β*(1-λ)*sum( π_x[i]*max.( J[emp_policy[a_i,x_i],i] , 0.0 ) for i in 1:N_x)
         end 
     end 
 
