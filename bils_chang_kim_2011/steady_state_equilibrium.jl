@@ -356,7 +356,7 @@ end;
 # ######################################################################
 # 
 @doc """
-    ConstructTransitionMatrix(para::ModelParams, ϵ=1e-6)
+    ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
 """ 
 function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
 
@@ -370,14 +370,13 @@ function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy
     for a_i in 1:N_a
         for x_i in 1:N_x
 
-            i = a_i+N_a*(x_i-1) # index for (a,x)
+            j = a_i+N_a*(x_i-1) # index for (a,x)
             a_i′ = emp_policy[a_i,x_i] # index for a′
 
             for x_i′ in 1:N_x
 
-                i′ = a_i′+N_a*(x_i′-1) # index for (a′,x′)
-                H_emp[i,i′] = π_x[x_i′] # prob. of (a,x) → (a′,x′)
-
+                j′ = a_i′+N_a*(x_i′-1) # index for (a′,x′)
+                H_emp[j,j′] = π_x[x_i′] # prob. of (a,x) → (a′,x′)
             end
         end
     end
@@ -391,22 +390,22 @@ end;
 # ######################################################################
 # 
 @doc """
-    FindStationaryMeasures(agent::Agent, a_policy)
+    FindStationaryMeasures(para::ModelParams, emp_policy, unemp_policy, x_star)
 """ 
 function FindStationaryMeasures(para::ModelParams,  emp_policy, unemp_policy, x_star)
 
-    H = ConstructTransitionMatrices(para, emp_policy, unemp_policy, x_star)
-    N = size(H)[1]
-    π0 = ones(1,N)/N
+    H_emp = ConstructTransitionMatrices(para, emp_policy, unemp_policy, x_star)
+    N_emp = size(H_emp)[1]
+    π0_emp = ones(1,N_emp)/N_emp
     diff = 1.
     
     while diff > 1e-10
-        π1 = π0*H
-        diff = norm(π1-π0,Inf)
-        π0 = π1
+        π1_emp = π0_emp*H_emp
+        diff = norm(π1_emp-π0_emp,Inf)
+        π0_emp = π1_emp
     end
 
-    return π0
+    return π0_emp
 end;
 
 # ######################################################################
