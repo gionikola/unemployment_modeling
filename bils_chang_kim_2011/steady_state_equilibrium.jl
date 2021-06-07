@@ -326,16 +326,9 @@ function SolveWage(para::ModelParams, ϵ=1e-6)
 
     W_old       = ones(length(para.agrid),length(para.xgrid))
     U_old       = ones(length(para.agrid))
-    """
-    wage_old    = ones(length(para.agrid),length(para.xgrid))
-    for i in 1:length(para.agrid)
-        for j in 1:length(para.xgrid)
-            wage_old[i,j] = i*j 
-        end 
-    end 
-    """
-    #c = (1-β)*(κ/θ)
-    c = 0.9
+
+    ζ_x         = 0.01
+    c           = 0.9
     wage_old    = ones(length(para.agrid),length(para.xgrid))*(c*θ)
     difff       = 10
     counter     = 0
@@ -344,7 +337,7 @@ function SolveWage(para::ModelParams, ϵ=1e-6)
         W_new, U_new, emp_policy, unemp_policy, x_star = SolveHHBellman(para, wage_old, W_old, U_old)
         wage_new, J             = UpdateWage(para, W_new, U_new, emp_policy, wage_old)
         difff                   = norm(wage_new - wage_old)
-        wage_old                = 0.01*wage_new + 0.99*wage_old 
+        wage_old                = ζ_x*wage_new + (1-ζ_x)*wage_old 
         W_old                   = W_new
         U_old                   = U_new 
         counter = counter + 1
