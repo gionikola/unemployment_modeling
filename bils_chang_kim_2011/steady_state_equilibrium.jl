@@ -322,14 +322,21 @@ Applies steps #1-3 of the Bils, Chang, and Kim (2011) steady state equilibrium a
 """ 
 function SolveWage(para::ModelParams, ϵ=1e-6)
     
+    @unpack θ, κ, β = para 
+
     W_old       = ones(length(para.agrid),length(para.xgrid))
     U_old       = ones(length(para.agrid))
+    """
     wage_old    = ones(length(para.agrid),length(para.xgrid))
     for i in 1:length(para.agrid)
         for j in 1:length(para.xgrid)
             wage_old[i,j] = i*j 
         end 
     end 
+    """
+    #c = (1-β)*(κ/θ)
+    c = 0.9
+    wage_old    = ones(length(para.agrid),length(para.xgrid))*(c*θ)
     difff       = 10
     counter     = 0
 
@@ -337,11 +344,11 @@ function SolveWage(para::ModelParams, ϵ=1e-6)
         W_new, U_new, emp_policy, unemp_policy, x_star = SolveHHBellman(para, wage_old, W_old, U_old)
         wage_new, J             = UpdateWage(para, W_new, U_new, emp_policy, wage_old)
         difff                   = norm(wage_new - wage_old)
-        wage_old                = 0.5*wage_new + 0.5*wage_old 
+        wage_old                = 0.01*wage_new + 0.99*wage_old 
         W_old                   = W_new
         U_old                   = U_new 
         counter = counter + 1
-        println(counter) 
+        println("Iteration: $(counter). Norm: $(difff).") 
     end 
     
     W, U, emp_policy, unemp_policy, x_star      = SolveHHBellman(para, wage_old, W_old, U_old)
