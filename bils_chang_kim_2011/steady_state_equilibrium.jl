@@ -9,6 +9,7 @@ using Distributions
 using Optim
 using QuantEcon
 using SpecialFunctions
+using SparseArrays
 
 # ######################################################################
 # ######################################################################
@@ -354,7 +355,59 @@ end;
 # ######################################################################
 # ######################################################################
 # 
+@doc """
+    ConstructTransitionMatrix(para::ModelParams, ϵ=1e-6)
+""" 
+function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
 
+    @unpack agrid, xgrid, π_x, p_θ = para
+
+    N_x = length(xgrid)
+    N_a = length(agrid)
+
+    H_emp = spzeros(N_a*N_x,N_a*N_x) 
+    
+    for a_i in 1:N_a
+        for x_i in 1:N_x
+
+            i = a_i+N_a*(x_i-1) # index for (a,x)
+            a_i′ = emp_policy[a_i,x_i] # index for a′
+
+            for x_i′ in 1:N_x
+
+                i′ = a_i′+N_a*(x_i′-1) # index for (a′,x′)
+                H_emp[i,i′] = π_x[x_i′] # prob. of (a,x) → (a′,x′)
+
+            end
+        end
+    end
+  
+    return H_emp
+end;
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# 
+@doc """
+    FindStationaryMeasures(agent::Agent, a_policy)
+""" 
+function FindStationaryMeasures(para::ModelParams,  emp_policy, unemp_policy, x_star)
+
+    H = ConstructTransitionMatrices(para, emp_policy, unemp_policy, x_star)
+    N = size(H)[1]
+    π0 = ones(1,N)/N
+    diff = 1.
+    
+    while diff > 1e-10
+        π1 = π0*H
+        diff = norm(π1-π0,Inf)
+        π0 = π1
+    end
+
+    return π0
+end;
 
 # ######################################################################
 # ######################################################################
