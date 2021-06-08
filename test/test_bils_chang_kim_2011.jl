@@ -60,5 +60,15 @@ wage_old = wage_new
 # ######################################################################
 # ######################################################################
 # Test out SolveWage() 
+include("bils_chang_kim_2011/steady_state_equilibrium.jl")
 
 W, U, J, emp_policy, unemp_policy, x_star, wage = SolveWage(ModelParams())
+
+# Save objects externally 
+using DelimitedFiles
+writedlm( "bils_chang_kim_2011/W.csv",  W, ',')
+writedlm( "bils_chang_kim_2011/U.csv",  U, ',')
+writedlm( "bils_chang_kim_2011/J.csv",  J, ',')
+writedlm( "bils_chang_kim_2011/emp_policy.csv",  emp_policy, ',')
+writedlm( "bils_chang_kim_2011/unemp_policy.csv",  unemp_policy, ',')
+writedlm( "bils_chang_kim_2011/wage.csv",  wage, ',')
