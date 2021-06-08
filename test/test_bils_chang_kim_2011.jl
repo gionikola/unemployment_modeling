@@ -64,6 +64,20 @@ include("bils_chang_kim_2011/steady_state_equilibrium.jl")
 
 W, U, J, emp_policy, unemp_policy, x_star, wage = SolveWage(ModelParams())
 
+using Plots
+
+fig = plot();
+for i in 1:9
+    plot!(fig, 1:length(W[:,i]), W[:,i]);
+end 
+plot(fig) 
+fig2 = plot();
+plot!(fig2, 1:length(U), U);
+plot(fig2)
+fig3 = plot();
+plot!(fig3, 1:length(J), J);
+plot(fig3)
+
 # Save objects externally 
 using DelimitedFiles
 writedlm( "bils_chang_kim_2011/W.csv",  W, ',')
