@@ -60,22 +60,33 @@ wage_old = wage_new
 # ######################################################################
 # ######################################################################
 # Test out SolveWage() 
+
+# Load functions 
 include("bils_chang_kim_2011/steady_state_equilibrium.jl")
 
+# Approximate value, policy, and wage functions
 W, U, J, emp_policy, unemp_policy, x_star, wage = SolveWage(ModelParams())
 
+# Plot approximated functions 
 using Plots
 
+## Plot value of employment for each x
 fig = plot();
 for i in 1:9
     plot!(fig, 1:length(W[:,i]), W[:,i]);
 end 
 plot(fig) 
+
+## Plot value of unemployment 
 fig2 = plot();
 plot!(fig2, 1:length(U), U);
 plot(fig2)
+
+## Plot value of vacancy for each x 
 fig3 = plot();
-plot!(fig3, 1:length(J), J);
+for i in 1:9
+    plot!(fig3, 1:length(J[:,i]), J[:,i]);
+end 
 plot(fig3)
 
 # Save objects externally 
@@ -86,3 +97,9 @@ writedlm( "bils_chang_kim_2011/J.csv",  J, ',')
 writedlm( "bils_chang_kim_2011/emp_policy.csv",  emp_policy, ',')
 writedlm( "bils_chang_kim_2011/unemp_policy.csv",  unemp_policy, ',')
 writedlm( "bils_chang_kim_2011/wage.csv",  wage, ',')
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# Test out FindStationaryMeasures() 
