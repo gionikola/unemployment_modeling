@@ -122,36 +122,50 @@ writedlm( "bils_chang_kim_2011/wage.csv",  wage, ',')
 # ######################################################################
 # ######################################################################
 # ######################################################################
-# 
-
 # Analyze exported objects from SolveWage()
 
+#####################################
 # Import saved objects 
 using DataFrames
 using CSV
+
+## Value of employment
 W = CSV.read("bils_chang_kim_2011/W.csv", DataFrame, header = false) 
 W = Matrix(W) 
+
+# Value of unemployment
 U = CSV.read("bils_chang_kim_2011/U.csv", DataFrame, header = false)
 U = Matrix(U) 
+
+# Value of a matched job
 J = CSV.read("bils_chang_kim_2011/J.csv", DataFrame, header = false)
 J = Matrix(J) 
+
+# Asset policy function under employment
 emp_policy      = CSV.read("bils_chang_kim_2011/emp_policy.csv", DataFrame, header = false)
 emp_policy      = Matrix(emp_policy) 
+
+# Asset policy function under unemployment 
 unemp_policy    = CSV.read("bils_chang_kim_2011/unemp_policy.csv", DataFrame, header = false)
 unemp_policy    = Matrix(unemp_policy)
+
+# Wage function 
 wage            = CSV.read("bils_chang_kim_2011/wage.csv", DataFrame, header = false)
 wage            = Matrix(wage) 
 
+#####################################
 # Plot approximated functions 
 using Plots
+
+## Save asset grid for x-axes 
 agrid = ModelParams().agrid 
 
 ## Plot value of employment for each x
-fig = plot();
+fig1 = plot();
 for i in 1:9
-    plot!(fig, agrid, W[:,i]);
+    plot!(fig1, agrid, W[:,i]);
 end 
-plot(fig) 
+plot(fig1) 
 
 ## Plot value of unemployment 
 fig2 = plot();
@@ -177,6 +191,13 @@ fig5 = plot();
 for i in 1:9
     plot!(fig5, agrid, W[:,i] - U);
 end 
+plot(fig5) 
+
+# All plots together 
+plot(fig1)
+plot(fig2)
+plot(fig3)
+plot(fig4)
 plot(fig5) 
 
 # ######################################################################
