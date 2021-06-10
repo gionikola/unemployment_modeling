@@ -155,10 +155,12 @@ wage            = Matrix(wage)
 
 #####################################
 # Plot approximated functions 
-using Plots
+using Plots 
+using LaTeXStrings 
 
 ## Save asset grid for x-axes 
 agrid = ModelParams().agrid 
+xgrid = ModelParams().xgrid
 
 ## Plot value of employment for each x
 fig1 = plot();
@@ -173,24 +175,30 @@ plot!(fig2, agrid, U);
 plot(fig2)
 
 ## Plot value of vacancy for each x 
-fig3 = plot();
+fig3 = plot(title = "Matched Firm Value");
 for i in 1:9
-    plot!(fig3, agrid, J[:,i]);
+    plot!(fig3, agrid, J[:,i], label="x=$(round(xgrid[i],digits=2))");
 end 
+xlabel!("Level of Asset Holdings");
+ylabel!(L"J");
 plot(fig3) 
 
 ## Plot wages for each x 
-fig4 = plot();
+fig4 = plot(title = "Wage Schedule");
 for i in 1:9
-    plot!(fig4, agrid, wage[:,i]);
+    plot!(fig4, agrid, wage[:,i], label="x=$(round(xgrid[i],digits=2))");
 end 
+xlabel!("Level of Asset Holdings");
+ylabel!("Wage");
 plot(fig4) 
 
 ## Plot W - U for each x 
-fig5 = plot();
+fig5 = plot(title = "Employment vs. Unemployment");
 for i in 1:9
-    plot!(fig5, agrid, W[:,i] - U);
+    plot!(fig5, agrid, W[:,i] - U, label="x=$(round(xgrid[i],digits=2))");
 end 
+xlabel!("Level of Asset Holdings");
+ylabel!(L"W-U");
 plot(fig5) 
 
 # All plots together 
