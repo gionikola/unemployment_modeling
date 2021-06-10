@@ -142,7 +142,42 @@ unemp_policy    = Matrix(unemp_policy)
 wage            = CSV.read("bils_chang_kim_2011/wage.csv", DataFrame, header = false)
 wage            = Matrix(wage) 
 
-#
+# Plot approximated functions 
+using Plots
+agrid = ModelParams().agrid 
+
+## Plot value of employment for each x
+fig = plot();
+for i in 1:9
+    plot!(fig, agrid, W[:,i]);
+end 
+plot(fig) 
+
+## Plot value of unemployment 
+fig2 = plot();
+plot!(fig2, agrid, U);
+plot(fig2)
+
+## Plot value of vacancy for each x 
+fig3 = plot();
+for i in 1:9
+    plot!(fig3, agrid, J[:,i]);
+end 
+plot(fig3) 
+
+## Plot wages for each x 
+fig4 = plot();
+for i in 1:9
+    plot!(fig4, agrid, wage[:,i]);
+end 
+plot(fig4) 
+
+## Plot W - U for each x 
+fig5 = plot();
+for i in 1:9
+    plot!(fig5, agrid, W[:,i] - U);
+end 
+plot(fig5) 
 
 # ######################################################################
 # ######################################################################
