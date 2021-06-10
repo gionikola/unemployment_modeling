@@ -63,7 +63,6 @@ Household Bernoulli utility function.
 function utility(para::ModelParams, c::Real)
     
     γ = para.γ # Store risk-aversion parameter
-    B = para.B # Store the leisure utility coefficient
 
     # Define the utility mapping 
     # condition on the input `c`
