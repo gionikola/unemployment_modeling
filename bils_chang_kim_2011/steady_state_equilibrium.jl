@@ -27,13 +27,11 @@ A structure containing all model parameters, including asset and matching produc
     r::Float64              = 0.06                          # annual interest rate 
     r_mon::Float64          = (1.0 + r)^(1.0/12.0) - 1.0    # monthly interest rate 
     worker_surplus::Float64 = 0.5                           # worker's share of surplus 
-    #β::Float64              = 0.995133                      # discount factor 
     β::Float64              = 0.9948                        # discount factor 
     β_mon::Float64          = 1.0/(1.0 + r_mon)             # monthly depreciation rate 
     γ::Float64              = 1.0                           # curvature of utility function 
     λ::Float64              = 0.02                          # exogenous separation rate 
     b::Float64              = 0.4                           # UI benefits 
-    #B::Float64              = 0.0                           # utility from leisure 
     B::Float64              = 0.15                          # utility from leisure 
     κ::Float64              = 0.522                         # vacancy posting cost with log utility 
     θ::Float64              = 1.0                           # labor market tightness, v/u, normalized to 1
