@@ -120,7 +120,7 @@ function TauchenApprox(N::Integer, ρ::T1, σ::T2, μ=zero(promote_type(T1, T2))
 
     # Get transition probabilities
     Π = zeros(promote_type(T1, T2), N, N)
-    for row = 1:N
+    Threads.@threads for row = 1:N
         # Do end points first
         Π[row, 1] = std_norm_cdf((y[1] - ρ*y[row] + d/2) / σ)
         Π[row, N] = 1 - std_norm_cdf((y[N] - ρ*y[row] - d/2) / σ)
@@ -182,8 +182,8 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
     N_x = length(xgrid)
     N_a = length(agrid)
 
-    for x_i  in 1:N_x
-        Threads.@threads for a_i in 1:N_a
+    Threads.@threads for x_i  in 1:N_x
+        for a_i in 1:N_a
             
             cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] .- agrid
             obj_emp     = u(cvec_emp) .+ β * sum( π_x[i]*max.(W_old[:,i], U_old) for i in 1:N_x)
@@ -263,15 +263,15 @@ function UpdateWage(para::ModelParams, W, U, emp_policy, wage_old)
     J = zeros(N_a, N_x)
     wage_new = similar(wage_old)
 
-    for a_i in 1:N_a
-        Threads.@threads for x_i in 1:N_x
+    Threads.@threads for a_i in 1:N_a
+        for x_i in 1:N_x
             c_e = (1+r)*agrid[a_i] + wage_old[a_i,x_i] - emp_policy[a_i,x_i]
             J[a_i,x_i] = ((1-α)/α)*(W[a_i,x_i] - U[a_i])*c_e 
         end 
     end 
 
-    for a_i in 1:N_a
-        Threads.@threads for x_i in 1:N_x
+    Threads.@threads for a_i in 1:N_a
+        for x_i in 1:N_x
             wage_new[a_i,x_i] = 1*xgrid[x_i] - J[a_i,x_i] + β*(1-λ)*sum( π_x[i]*max.( J[emp_policy[a_i,x_i],i] , 0.0 ) for i in 1:N_x)
         end 
     end 
