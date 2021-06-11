@@ -10,6 +10,7 @@ using Optim
 using QuantEcon
 using SpecialFunctions
 using SparseArrays
+using ThreadTools 
 
 # ######################################################################
 # ######################################################################
@@ -182,7 +183,7 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
     N_a = length(agrid)
 
     for x_i  in 1:N_x
-        for a_i in 1:N_a
+        Threads.@threads for a_i in 1:N_a
             
             cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] .- agrid
             obj_emp     = u(cvec_emp) .+ β * sum( π_x[i]*max.(W_old[:,i], U_old) for i in 1:N_x)
@@ -215,8 +216,7 @@ Iterates on the Bellman map until convergence.
 ⋅ W             -- Approximated value of employment (matrix)
 ⋅ U             -- Approximated value of unemployment (vector) 
 ⋅ emp_policy    -- Approximated asset policy function in case of employment (matrix)
-⋅ unemp_policy  -- Approximated asset policy function in case of unemployment (vector) 
-⋅ x_star        -- Approximated reservation match productivity level (vector) 
+⋅ unemp_policy  -- Approximated asset policy function in case of unemployment (vector)
 """
 function SolveHHBellman(para::ModelParams, wage, W0, U0, ϵ=1e-6)
 
@@ -238,27 +238,7 @@ function SolveHHBellman(para::ModelParams, wage, W0, U0, ϵ=1e-6)
     
     W, U, emp_policy, unemp_policy = HHBellmanMap(para, wage, W_old, U_old)
 
-    x_star = zeros(length(U))
-
-    for i in 1:length(U)
-        acc = zeros(length(W[1,:]))
-        for j in 1:length(W[1,:])
-            if U[i] > W[i,j]
-                acc[j] = 1
-            end 
-        end 
-        x_star[i] = floor(Int, sum(acc))
-    end 
-    x_star = floor.(Int, x_star)
-    xstar = zeros(length(x_star))
-    for i in 1:3
-        if x_star[i] > 0
-            xstar[i] = xgrid[x_star[i]]
-        end 
-    end 
-    x_star = copy(xstar) 
-
-    return W, U, emp_policy, unemp_policy, x_star 
+    return W, U, emp_policy, unemp_policy
 end;
 
 # ######################################################################
@@ -286,14 +266,14 @@ function UpdateWage(para::ModelParams, W, U, emp_policy, wage_old)
     wage_new = similar(wage_old)
 
     for a_i in 1:N_a
-        for x_i in 1:N_x
+        Threads.@threads for x_i in 1:N_x
             c_e = (1+r)*agrid[a_i] + wage_old[a_i,x_i] - emp_policy[a_i,x_i]
             J[a_i,x_i] = ((1-α)/α)*(W[a_i,x_i] - U[a_i])*c_e 
         end 
     end 
 
     for a_i in 1:N_a
-        for x_i in 1:N_x
+        Threads.@threads for x_i in 1:N_x
             wage_new[a_i,x_i] = 1*xgrid[x_i] - J[a_i,x_i] + β*(1-λ)*sum( π_x[i]*max.( J[emp_policy[a_i,x_i],i] , 0.0 ) for i in 1:N_x)
         end 
     end 
@@ -316,12 +296,11 @@ Applies steps #1-3 of the Bils, Chang, and Kim (2011) steady state equilibrium a
 ⋅ U             -- Approximated value of unemployment (vector) 
 ⋅ emp_policy    -- Approximated asset policy function in case of employment (matrix)
 ⋅ unemp_policy  -- Approximated asset policy function in case of unemployment (vector) 
-⋅ x_star        -- Approximated reservation match productivity level (vector)
 ⋅ wage          -- Approximated wage mapping (matrix) 
 """ 
-function SolveWage(para::ModelParams, ϵ=1e-6)
+function SolveWage(para::ModelParams, ϵ=1e-4)
     
-    @unpack θ, κ, β = para 
+    @unpack θ = para 
 
     W_old       = ones(length(para.agrid),length(para.xgrid))
     U_old       = ones(length(para.agrid))
@@ -333,20 +312,20 @@ function SolveWage(para::ModelParams, ϵ=1e-6)
     counter     = 0
 
     while difff > ϵ 
-        W_new, U_new, emp_policy, unemp_policy, x_star = SolveHHBellman(para, wage_old, W_old, U_old)
-        wage_new, J             = UpdateWage(para, W_new, U_new, emp_policy, wage_old)
-        difff                   = norm(wage_new - wage_old)
-        wage_old                = ζ_x*wage_new + (1-ζ_x)*wage_old 
-        W_old                   = W_new
-        U_old                   = U_new 
+        W_new, U_new, emp_policy = SolveHHBellman(para, wage_old, W_old, U_old)
+        wage_new                 = UpdateWage(para, W_new, U_new, emp_policy, wage_old)
+        difff                    = norm(wage_new - wage_old)
+        wage_old                 = ζ_x*wage_new + (1-ζ_x)*wage_old 
+        W_old                    = W_new
+        U_old                    = U_new 
         counter = counter + 1
         println("Iteration: $(counter). Norm: $(difff).") 
     end 
     
-    W, U, emp_policy, unemp_policy, x_star      = SolveHHBellman(para, wage_old, W_old, U_old)
+    W, U, emp_policy, unemp_policy              = SolveHHBellman(para, wage_old, W_old, U_old)
     wage, J                                     = UpdateWage(para, W, U, emp_policy, wage_old)
 
-    return W, U, J, emp_policy, unemp_policy, x_star, wage 
+    return W, U, J, emp_policy, unemp_policy, wage 
 end;
 
 # ######################################################################
@@ -355,11 +334,11 @@ end;
 # ######################################################################
 # 
 @doc """
-    ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
+    ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy)
 """ 
-function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
+function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy)
 
-    @unpack agrid, xgrid, π_x, p_θ = para
+    @unpack agrid, xgrid, π_x = para
 
     N_x = length(xgrid)
     N_a = length(agrid)
@@ -389,11 +368,11 @@ end;
 # ######################################################################
 # 
 @doc """
-    FindStationaryMeasures(para::ModelParams, emp_policy, unemp_policy, x_star)
+    FindStationaryMeasures(para::ModelParams, emp_policy, unemp_policy)
 """ 
-function FindStationaryMeasures(para::ModelParams,  emp_policy, unemp_policy, x_star)
+function FindStationaryMeasures(para::ModelParams,  emp_policy, unemp_policy)
 
-    H_emp, H_unemp = ConstructTransitionMatrices(para, emp_policy, unemp_policy, x_star)
+    H_emp, H_unemp = ConstructTransitionMatrices(para, emp_policy, unemp_policy)
     N_emp = size(H_emp)[1]
     π0_emp = ones(1,N_emp)/N_emp
     N_unemp = size(H_unemp)[1]
