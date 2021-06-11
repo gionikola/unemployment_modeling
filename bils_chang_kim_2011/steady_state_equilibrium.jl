@@ -220,8 +220,6 @@ Iterates on the Bellman map until convergence.
 """
 function SolveHHBellman(para::ModelParams, wage, W0, U0, ϵ=1e-6)
 
-    @unpack xgrid = para 
-
     W_old = W0
     U_old = U0 
     emp_policy      = similar(W_old, Int)
@@ -313,7 +311,7 @@ function SolveWage(para::ModelParams, ϵ=1e-4)
 
     while difff > ϵ 
         W_new, U_new, emp_policy = SolveHHBellman(para, wage_old, W_old, U_old)
-        wage_new                 = UpdateWage(para, W_new, U_new, emp_policy, wage_old)
+        wage_new, J              = UpdateWage(para, W_new, U_new, emp_policy, wage_old)
         difff                    = norm(wage_new - wage_old)
         wage_old                 = ζ_x*wage_new + (1-ζ_x)*wage_old 
         W_old                    = W_new
