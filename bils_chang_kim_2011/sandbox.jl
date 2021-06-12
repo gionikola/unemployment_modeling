@@ -50,7 +50,7 @@ using ThreadTools
     q_θ::Float64            = η*θ^(α-1)                     # vacancy matching probability 
     amin::Float64           = -6.0                          # minimum asset 
     amax::Float64           = 120.0                         # maximum asset 
-    agrid::Vector{Float64}  = LinRange(amin, amax, 10)      # asset grid 
+    agrid::Vector{Float64}  = LinRange(amin, amax, 20)      # asset grid 
     ρ_x::Float64            = 0.97                          # persistence of idiosyncratic productivity ln(x)
     σ_x::Float64            = 0.13                          # std. dev. of innovation to ln(x) 
     π_x                     = TauchenApprox(9, ρ_x, σ_x).distribution           # probability weights on ln(x) 
@@ -227,7 +227,8 @@ function WorkerBellmanMap(para::ModelParameters, wage, W_old, U_old)
     k=0
 
     # Fill out W_new and U_new matrices 
-    Threads.@threads for i in 1:length(nodes_AX[:,1])
+     Threads.@threads for i in 1:length(nodes_AX[:,1])
+    #for i in 1:length(nodes_AX[:,1])
         
         # Create (a,x) vector 
         ax = vec(nodes_AX[i,:])
@@ -265,7 +266,9 @@ end;
 
 ###########################################################
 # Iterate Bellman map
-W_new, U_new, emp_policy, unemp_policy = WorkerBellmanMap(ModelParameters(), wage_init, W_init, U_init)
+para = ModelParameters()
+para.agrid = LinRange(para.amin, para.amax, 18)
+W_new, U_new, emp_policy, unemp_policy = WorkerBellmanMap(para, wage_init, W_init, U_init)
 
 ###########################################################
 ###########################################################
@@ -293,7 +296,7 @@ function SolveWorkerBellman(para::ModelParameters, wage, W0, U0, ϵ=1e-5)
     while diff > ϵ
         iter = iter + 1
         W_new, U_new = WorkerBellmanMap(para, wage, W_old, U_old)
-        diff = norm((U_new.(nodes_A)-U_old.(nodes_A))[:],Inf)
+        diff = norm(U_new.(nodes_A)-U_old.(nodes_A))
         W_old = W_new 
         U_old = U_new 
         println("Iteration: $(iter); Norm: $(diff)")
@@ -308,11 +311,17 @@ end;
 # Iterate Bellman map
 W_init, U_init = InitializeValues(ModelParameters());
 wage_init = InitializeWage(ModelParameters());
-W_new, U_new, emp_policy, unemp_policy = SolveWorkerBellman(ModelParameters(), 
+para = ModelParameters()
+para.agrid = LinRange(para.amin, para.amax, 100)
+para.B = 0.0
+W_new, U_new, emp_policy, unemp_policy = SolveWorkerBellman(para, 
                                                             wage_init, 
                                                             W_init, 
                                                             U_init);
 
+plot(a -> U_new(a), LinRange(-6.0,120.0,5000))
+
+U_new(0)
 ###########################################################
 ###########################################################
 ###########################################################
@@ -326,3 +335,8 @@ W_new, U_new, emp_policy, unemp_policy = SolveWorkerBellman(ModelParameters(),
 ###########################################################
 ###########################################################
 # 
+
+using Profile 
+
+@profile InitializeValues(ModelParameters())
+Profile.print()
