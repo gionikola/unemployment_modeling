@@ -218,7 +218,7 @@ Iterates on the Bellman map until convergence.
 ⋅ emp_policy    -- Approximated asset policy function in case of employment (matrix)
 ⋅ unemp_policy  -- Approximated asset policy function in case of unemployment (vector)
 """
-function SolveHHBellman(para::ModelParams, wage, W0, U0, ϵ=1e-6)
+function SolveHHBellman(para::ModelParams, wage, W0, U0, ϵ=1e-5)
 
     W_old = W0
     U_old = U0 
@@ -296,7 +296,7 @@ Applies steps #1-3 of the Bils, Chang, and Kim (2011) steady state equilibrium a
 ⋅ unemp_policy  -- Approximated asset policy function in case of unemployment (vector) 
 ⋅ wage          -- Approximated wage mapping (matrix) 
 """ 
-function SolveWage(para::ModelParams, ϵ=1e-4)
+function SolveWage(para::ModelParams, ϵ=1e-5)
     
     @unpack θ = para 
 
