@@ -318,18 +318,18 @@ function InitializeFunctions(para::ModelParams)
     N_x = length(xgrid) 
     W       = ones(N_a,N_x)
     U       = ones(N_a)
-    wage    = ones(N_a,N_x)*0.9
+    wage    = ones(N_a,N_x)*2
 
     Threads.@threads for x_i  in 1:N_x
         
         if x_i == 5 
             for a_i in 1:N_a
-                W[a_i,x_i] = log((1+r)*agrid[a_i] + wage[a_i,x_i] - agrid[a_i])/(1-β) 
-                U[a_i]     = (log(1+r)*agrid[a_i] + b - agrid[a_i] + B)/(1-β) 
+                W[a_i,x_i] = log((1+r)*agrid[a_i] + xgrid[x_i]*wage[a_i,x_i] - agrid[a_i])/(1-β) 
+                U[a_i]     = log((1+r)*agrid[a_i] + b - agrid[a_i] + B)/(1-β) 
             end 
         else
             for a_i in 1:N_a
-                W[a_i,x_i] = (log(1+r)*agrid[a_i] + wage[a_i,x_i] - agrid[a_i])/(1-β) 
+                W[a_i,x_i] = log((1+r)*agrid[a_i] + xgrid[x_i]*wage[a_i,x_i] - agrid[a_i])/(1-β) 
             end 
         end 
     end 
