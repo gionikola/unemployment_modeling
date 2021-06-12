@@ -410,12 +410,17 @@ function ReservationProductivity(para::ModelParams, W, U)
                 x_comps[a_i,x_i] = -1*W[a_i,x_i] > -1*U[a_i] 
             end 
         end 
-        # x_opt(a) = position in xgrid for which W surpasses U 
+        # x_grid = position in xgrid for which W surpasses U 
         # indicating entry of xgrid that allows the switch 
         # from unemployment to employment for a given `a`
         x_opt   = zeros(N_a)
         for a_i in 1:N_a
-            x_opt[a_i] = findfirst(x_comps[a_i,:] .== 0.0)
+            x_index     = findfirst(x_comps[a_i,:] .== 0.0) 
+            if x_index > 1
+                x_opt[a_i]  = (xgrid[x_index] - xgrid[x_index-1])/2
+            else 
+                x_opt[a_i]  = 0.0 
+            end 
         end 
         
     return x_opt
