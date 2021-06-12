@@ -392,6 +392,39 @@ end;
 # ######################################################################
 # ######################################################################
 # ######################################################################
+# Reservation productivity, x(a;w) 
+@doc """
+    ReservationProductivity(para::ModelParams, W, U)
+"""
+function ReservationProductivity(para::ModelParams, W, U)
+
+        @unpack xgrid, agrid = para 
+        N_a = length(agrid)
+        N_x = length(xgrid)
+        x_comps = zeros(N_a,N_x) 
+        # If for any given (a,x), U(a) > W(a,x)
+        # then store x_comps(a,x) = 1.0 (unemployment)
+        # other store x_comps(a,x) = 0.0 (employment) 
+        for x_i in 1:N_x 
+            for a_i in 1:N_a
+                x_comps[a_i,x_i] = -1*W[a_i,x_i] > -1*U[a_i] 
+            end 
+        end 
+        # x_opt(a) = position in xgrid for which W surpasses U 
+        # indicating entry of xgrid that allows the switch 
+        # from unemployment to employment for a given `a`
+        x_opt   = zeros(N_a)
+        for a_i in 1:N_a
+            x_opt[a_i] = findfirst(x_comps[a_i,:] .== 0.0)
+        end 
+        
+    return x_opt
+end;
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
 # 
 @doc """
     ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy)
