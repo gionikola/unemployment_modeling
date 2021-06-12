@@ -183,6 +183,28 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
     N_a = length(agrid)
 
     Threads.@threads for x_i  in 1:N_x
+        
+        if x_i == 5 
+            for a_i in 1:N_a
+                cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] .- agrid
+                obj_emp     = u(cvec_emp) .+ β * sum( π_x[i]*max.(W_old[:,i], U_old) for i in 1:N_x)
+                obj_emp     = vec(obj_emp)
+                W_new[a_i,x_i], emp_policy[a_i,x_i] = findmax(obj_emp)  
+            
+                cvec_unemp = (1+r)*agrid[a_i] + b .- agrid
+                obj_unemp   = u(cvec_unemp) .+ B .+ β*(1-p_θ)*U_old .+ β*(p_θ)*W_old[:,5]
+                obj_unemp   = vec(obj_unemp) 
+                U_new[a_i], unemp_policy[a_i] = findmax(obj_unemp)
+            end 
+        else
+            for a_i in 1:N_a
+                cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] .- agrid
+                obj_emp     = u(cvec_emp) .+ β * sum( π_x[i]*max.(W_old[:,i], U_old) for i in 1:N_x)
+                obj_emp     = vec(obj_emp)
+                W_new[a_i,x_i], emp_policy[a_i,x_i] = findmax(obj_emp)  
+            end 
+        end 
+        """
         for a_i in 1:N_a
             
             cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] .- agrid
@@ -197,6 +219,7 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
                 U_new[a_i], unemp_policy[a_i] = findmax(obj_unemp)
             end     
         end
+        """
     end
 
     return W_new, U_new, emp_policy, unemp_policy
@@ -263,15 +286,15 @@ function UpdateWage(para::ModelParams, W, U, emp_policy, wage_old)
     J = zeros(N_a, N_x)
     wage_new = similar(wage_old)
 
-    Threads.@threads for a_i in 1:N_a
-        for x_i in 1:N_x
+    Threads.@threads for x_i in 1:N_x 
+        for a_i in 1:N_a
             c_e = (1+r)*agrid[a_i] + wage_old[a_i,x_i] - emp_policy[a_i,x_i]
             J[a_i,x_i] = ((1-α)/α)*(W[a_i,x_i] - U[a_i])*c_e 
         end 
     end 
 
-    Threads.@threads for a_i in 1:N_a
-        for x_i in 1:N_x
+    Threads.@threads for x_i in 1:N_x 
+        for a_i in 1:N_a
             wage_new[a_i,x_i] = 1*xgrid[x_i] - J[a_i,x_i] + β*(1-λ)*sum( π_x[i]*max.( J[emp_policy[a_i,x_i],i] , 0.0 ) for i in 1:N_x)
         end 
     end 
@@ -283,7 +306,42 @@ end;
 # ######################################################################
 # ######################################################################
 # ######################################################################
-# 
+# Initialize value functions and wage 
+@doc """
+    InitializeFunctions(para::ModelParams)
+
+Initializes W(a,x), U(a), and wage(a,x).
+"""
+function InitializeFunctions(para::ModelParams)
+    @unpack agrid, xgrid, β, r, b, B = para 
+    N_a = length(agrid)
+    N_x = length(xgrid) 
+    W       = ones(N_a,N_x)
+    U       = ones(N_a)
+    wage    = ones(N_a,N_x)*0.9
+
+    Threads.@threads for x_i  in 1:N_x
+        
+        if x_i == 5 
+            for a_i in 1:N_a
+                W[a_i,x_i] = log((1+r)*agrid[a_i] + wage[a_i,x_i] - agrid[a_i])/(1-β) 
+                U[a_i]     = (log(1+r)*agrid[a_i] + b - agrid[a_i] + B)/(1-β) 
+            end 
+        else
+            for a_i in 1:N_a
+                W[a_i,x_i] = (log(1+r)*agrid[a_i] + wage[a_i,x_i] - agrid[a_i])/(1-β) 
+            end 
+        end 
+    end 
+
+    return W, U, wage 
+end 
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# Solve wage 
 @doc """
     SolveWage(para::ModelParams, ϵ=1e-6)
 
@@ -297,15 +355,17 @@ Applies steps #1-3 of the Bils, Chang, and Kim (2011) steady state equilibrium a
 ⋅ wage          -- Approximated wage mapping (matrix) 
 """ 
 function SolveWage(para::ModelParams, ϵ=1e-5)
-    
-    @unpack θ = para 
 
+    W_old, U_old, wage_old = InitializeFunctions(para) 
+
+    """
     W_old       = ones(length(para.agrid),length(para.xgrid))
     U_old       = ones(length(para.agrid))
-
-    ζ_x         = 0.01
     c           = 0.9
     wage_old    = ones(length(para.agrid),length(para.xgrid))*(c*θ)
+    """
+
+    ζ_x         = 0.01
     difff       = 10
     counter     = 0
 
