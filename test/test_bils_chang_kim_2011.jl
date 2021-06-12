@@ -40,7 +40,7 @@ for i in 1:length(para.agrid)
     end 
 end 
 
-W, U, emp_policy, unemp_policy, x_star = SolveHHBellman(para, wage, W_old, U_old)
+W, U, emp_policy, unemp_policy = SolveHHBellman(para, wage*0.9, W_old, U_old)
 
 using Plots
 
@@ -81,7 +81,10 @@ wage_old = wage_new
 include("bils_chang_kim_2011/steady_state_equilibrium.jl")
 
 # Approximate value, policy, and wage functions
-W, U, J, emp_policy, unemp_policy, x_star, wage = SolveWage(ModelParams())
+para = ModelParams()
+para.agrid = LinRange(para.amin, para.amax, 50)
+#para.B = 0.0
+W, U, J, emp_policy, unemp_policy, wage = SolveWage(para)
 
 # Plot approximated functions 
 using Plots
@@ -89,21 +92,28 @@ using Plots
 ## Plot value of employment for each x
 fig = plot();
 for i in 1:9
-    plot!(fig, 1:length(W[:,i]), W[:,i]);
+    plot!(fig, para.agrid, W[:,i]);
 end 
 plot(fig) 
 
 ## Plot value of unemployment 
 fig2 = plot();
-plot!(fig2, 1:length(U), U);
+plot!(fig2, para.agrid, U);
 plot(fig2)
 
 ## Plot value of vacancy for each x 
 fig3 = plot();
 for i in 1:9
-    plot!(fig3, 1:length(J[:,i]), J[:,i]);
+    plot!(fig3, para.agrid, J[:,i]);
 end 
 plot(fig3)
+
+## Plot wage for each x
+fig4 = plot();
+for i in 1:9
+    plot!(fig4, para.agrid, wage[:,i]);
+end 
+plot(fig4) 
 
 # Save objects externally 
 using DelimitedFiles
@@ -165,13 +175,13 @@ xgrid = ModelParams().xgrid
 ## Plot value of employment for each x
 fig1 = plot();
 for i in 1:9
-    plot!(fig1, agrid, W[:,i]);
+    plot!(fig1, agrid, emp_policy[:,i]);
 end 
 plot(fig1) 
 
 ## Plot value of unemployment 
 fig2 = plot();
-plot!(fig2, agrid, U);
+plot!(fig2, agrid, unemp_policy);
 plot(fig2)
 
 ## Plot value of vacancy for each x 
