@@ -436,17 +436,17 @@ end;
 """ 
 function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
 
-    @unpack agrid, xgrid, π_x = para
+    @unpack agrid, xgrid, π_x, p_θ = para
     N_x = length(xgrid)
     N_a = length(agrid)
-    H_emp = spzeros(N_a*N_x,N_a*N_x) 
-    H_unemp = spzeros(N_a*N_x,N_a*N_x) 
+    H_emp = zeros(N_a*N_x,N_a*N_x) 
+    H_unemp = zeros(N_a*N_x,N_a*N_x) 
     ### Fill out the employment matrix
     Threads.@threads for a_i in 1:N_a
         for x_i in 1:N_x
             j = a_i+N_a*(x_i-1) # index for (a,x)
             a_emp = emp_policy[a_i,x_i] # index for a′ given employment
-            a_unemp = unemp_policy[a_i,x_i] # index for a′ given unemployment 
+            a_unemp = unemp_policy[a_i] # index for a′ given unemployment 
             x′_star = x_star[a_emp] # value of x′_star under employment  
             for x_i′ in 1:N_x
                 j′ = a_emp+N_a*(x_i′-1) # index for (a′,x′) given employment
@@ -465,7 +465,7 @@ function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy
         for x_i in 1:N_x
             j = a_i+N_a*(x_i-1) # index for (a,x)
             a_emp = emp_policy[a_i,x_i] # index for a′ given employment
-            a_unemp = unemp_policy[a_i,x_i] # index for a′ given unemployment 
+            a_unemp = unemp_policy[a_i] # index for a′ given unemployment 
             x′_star = x_star[a_emp] # value of x′_star under employment  
             for x_i′ in 1:N_x
                 j′ = a_emp+N_a*(x_i′-1) # index for (a′,x′) given employment
@@ -477,7 +477,6 @@ function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy
             end
         end
     end
-
     return H_emp, H_unemp 
 end;
 
