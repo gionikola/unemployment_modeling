@@ -42,7 +42,7 @@ A structure containing all model parameters, including asset and matching produc
     q_θ::Float64            = η*θ^(α-1)                     # vacancy matching probability 
     amin::Float64           = -6.0                          # minimum asset 
     amax::Float64           = 120.0                         # maximum asset 
-    agrid::Vector{Float64}  = LinRange(amin, amax, 100)     # asset grid 
+    agrid::Vector{Float64}  = LinRange(amin, amax, 50)      # asset grid w/ 50 nodes
     ρ_x::Float64            = 0.97                          # persistence of idiosyncratic productivity ln(x)
     σ_x::Float64            = 0.13                          # std. dev. of innovation to ln(x) 
     π_x                     = TauchenApprox(9, ρ_x, σ_x).distribution           # probability weights on ln(x) 
@@ -204,22 +204,6 @@ function HHBellmanMap(para::ModelParams, wage, W_old, U_old)
                 W_new[a_i,x_i], emp_policy[a_i,x_i] = findmax(obj_emp)  
             end 
         end 
-        """
-        for a_i in 1:N_a
-            
-            cvec_emp = (1+r)*agrid[a_i] + wage[a_i,x_i] .- agrid
-            obj_emp     = u(cvec_emp) .+ β * sum( π_x[i]*max.(W_old[:,i], U_old) for i in 1:N_x)
-            obj_emp     = vec(obj_emp)
-            W_new[a_i,x_i], emp_policy[a_i,x_i] = findmax(obj_emp)
-
-            if x_i == 5 
-                cvec_unemp = (1+r)*agrid[a_i] + b .- agrid
-                obj_unemp   = u(cvec_unemp) .+ B .+ β*(1-p_θ)*U_old .+ β*(p_θ)*W_old[:,5]
-                obj_unemp   = vec(obj_unemp) 
-                U_new[a_i], unemp_policy[a_i] = findmax(obj_unemp)
-            end     
-        end
-        """
     end
 
     return W_new, U_new, emp_policy, unemp_policy
@@ -379,7 +363,7 @@ function SolveWage(para::ModelParams, ϵ=1e-5)
         W_old                    = W_new
         U_old                    = U_new 
         counter = counter + 1
-        println("Iteration: $(counter). Norm: $(difff).") 
+        println("Wage Solver Iteration: $(counter). Norm: $(difff).") 
     end 
     
     W, U, emp_policy, unemp_policy              = SolveHHBellman(para, wage_old, W_old, U_old)
@@ -538,8 +522,42 @@ end
 """ 
 function SolveEquilibrium(para::ModelParams)
 
+    @unpack θ, agrid, xgrid = para 
     
+    N_a = length(agrid)
+    N_x = length(xgrid) 
 
+    diff    = 1
+    θ_old   = θ
+    ζ_θ     = 0.05
+    counterr = 0
+
+    # Declare variables to be returned 
+    # at the end of the function 
+    W               = zeros(N_a,N_x)
+    U               = zeros(N_a)
+    J               = zeros(N_a,N_x)
+    emp_policy      = zeros(N_a,N_x)
+    unemp_policy    = zeros(N_a)
+    wage            = zeros(N_a,N_x)
+    x_star          = zeros(N_a) 
+    π_emp           = zeros(N_a*N_x)
+    π_unemp         = zeros(N_a*N_x) 
+
+    while diff > 1e-4 
+    para = ModelParams(θ=θ_old) 
+    W, U, J, emp_policy, unemp_policy, wage = SolveWage(para)
+    x_star = ReservationProductivity(para, W, U)
+    π_emp, π_unemp = FindStationaryMeasures(para, emp_policy, unemp_policy, x_star)
+    θ_new = AdjustTheta(para, J, π_unemp)
+    diff = abs(θ_new - θ_old) 
+    θ_old = ζ_θ*θ_new + (1-ζ_θ)*θ_old 
+    counterr = counterr + 1
+    println("Equilibrium Iteration: $(counterr). Norm: $(diff).") 
+    end 
+
+    θ = θ_old
+    return θ
 end 
 
 # ######################################################################
