@@ -522,6 +522,7 @@ end
 """ 
 function SolveEquilibrium(para::ModelParams)
 
+    para = para 
     @unpack θ, agrid, xgrid = para 
     
     N_a = length(agrid)
@@ -557,7 +558,8 @@ function SolveEquilibrium(para::ModelParams)
     end 
 
     θ = θ_old
-    return θ
+    
+    return para, θ, W, U, J, emp_policy, unemp_policy, wage, x_star, π_emp, π_unemp 
 end 
 
 # ######################################################################

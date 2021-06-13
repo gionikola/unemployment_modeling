@@ -273,3 +273,5 @@ H_ee, H_eu, H_ue, H_uu = InitializeTransitionMatrices(para, emp_policy, unemp_po
 # ######################################################################
 # ######################################################################
 # Test SolveEquilibrium() 
+para = ModelParams() 
+para, θ, W, U, J, emp_policy, unemp_policy, wage, x_star, π_emp, π_unemp = SolveEquilibrium(para::ModelParams)
