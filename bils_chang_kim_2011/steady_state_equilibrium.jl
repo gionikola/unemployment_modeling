@@ -432,52 +432,42 @@ end;
 # ######################################################################
 # 
 @doc """
-    ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
+    InitializeTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
 """ 
-function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
+function InitializeTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
 
-    @unpack agrid, xgrid, π_x, p_θ = para
-    N_x = length(xgrid)
-    N_a = length(agrid)
-    H_emp = zeros(N_a*N_x,N_a*N_x) 
-    H_unemp = zeros(N_a*N_x,N_a*N_x) 
+    @unpack agrid, xgrid, π_x = para
+    N_x  = length(xgrid)
+    N_a  = length(agrid)
+    H_ee = zeros(N_a*N_x,N_a*N_x) # trans. from employmed to employmed  
+    H_eu = zeros(N_a*N_x,N_a*N_x) # trans. from employed to unemployed
+    H_ue = zeros(N_a*N_x,N_a*N_x) # trans. from unemployed to employed 
+    H_uu = zeros(N_a*N_x,N_a*N_x) # trans. from unemployed to unemployed 
+
     ### Fill out the employment matrix
     Threads.@threads for a_i in 1:N_a
         for x_i in 1:N_x
-            j = a_i+N_a*(x_i-1) # index for (a,x)
-            a_emp = emp_policy[a_i,x_i] # index for a′ given employment
+            j       = a_i+N_a*(x_i-1) # index for (a,x)
+            a_emp   = emp_policy[a_i,x_i] # index for a′ given employment
             a_unemp = unemp_policy[a_i] # index for a′ given unemployment 
             x′_star = x_star[a_emp] # value of x′_star under employment  
             for x_i′ in 1:N_x
                 j′ = a_emp+N_a*(x_i′-1) # index for (a′,x′) given employment
                 if xgrid[x_i′] > x′_star # if x′ is above reservation x
-                    H_emp[j,j′] = H_emp[j,j′] + π_x[x_i′] # prob. of (a,x) → (a′,x′) given employment
+                    H_ee[j,j′] = π_x[x_i′] # prob. of (a,x) → (a′,x′) given employment
+                else 
+                    H_eu[j,j′] = π_x[x_i′] # prob. of (a,x) → (a′,x′) given employment
                 end 
-                j′ = a_unemp+N_a*(x_i′-1) # index for (a′,x′) given unemployment 
+                j′ = a_unemp+N_a*(x_i′-1) # index for (a′,x′) given unemployment
+                H_uu[j,j′] = π_x[x_i′]  # prob. of (a,x) → (a′,x′) given unemployment
                 if x_i′ == 5 # if x′ = x̄ (x̄ is the middle (5th) entry of xgrid)
-                    H_emp[j,j′] = H_emp[j,j′] + p_θ*π_x[x_i′] # prob. of (a,x) → (a′,x′) given employment
+                    H_ue[j,j′] = 1 # prob. of (a,x) → (a′,x′) given unemployment
                 end 
             end
         end
     end
-    ### Fill out the unemployment matrix 
-    Threads.@threads for a_i in 1:N_a
-        for x_i in 1:N_x
-            j = a_i+N_a*(x_i-1) # index for (a,x)
-            a_emp = emp_policy[a_i,x_i] # index for a′ given employment
-            a_unemp = unemp_policy[a_i] # index for a′ given unemployment 
-            x′_star = x_star[a_emp] # value of x′_star under employment  
-            for x_i′ in 1:N_x
-                j′ = a_emp+N_a*(x_i′-1) # index for (a′,x′) given employment
-                if xgrid[x_i′] < x′_star # if x′ is above reservation x
-                    H_unemp[j,j′] = H_unemp[j,j′] + π_x[x_i′] # prob. of (a,x) → (a′,x′) given employment
-                end 
-                j′ = a_unemp+N_a*(x_i′-1) # index for (a′,x′) given unemployment 
-                H_unemp[j,j′] = H_unemp[j,j′] + (1-p_θ)*π_x[x_i′] # prob. of (a,x) → (a′,x′) given employment
-            end
-        end
-    end
-    return H_emp, H_unemp 
+
+    return H_ee, H_eu, H_ue, H_uu  
 end;
 
 # ######################################################################
@@ -490,21 +480,29 @@ end;
 """ 
 function FindStationaryMeasures(para::ModelParams,  emp_policy, unemp_policy, x_star)
 
-    H_emp, H_unemp = ConstructTransitionMatrices(para, emp_policy, unemp_policy, x_star)
-    N_emp = size(H_emp)[1]
+    @unpack p_θ = para 
+
+    H_ee, H_eu, H_ue, H_uu = InitializeTransitionMatrices(para, emp_policy, unemp_policy, x_star)
+    N_emp = size(H_ee)[1]
     π0_emp = ones(1,N_emp)/N_emp
-    N_unemp = size(H_unemp)[1]
+    N_unemp = size(H_uu)[1]
     π0_unemp = ones(1,N_unemp)/N_unemp
-    diff = 1.
-    
-    while diff > 1e-10
-        π1_emp = π0_emp*H_emp
-        π1_unemp = π0_unemp*H_unemp
-        diff = norm(π1_emp-π0_emp,Inf)
-        diff = norm(π1_unemp-π0_unemp,Inf)
+    diff_emp = 1.
+    diff_unemp = 1.
+    iter = 0
+    while diff_emp > 1e-10 && diff_unemp > 1e-10
+        π1_emp = π0_emp*H_ee + p_θ*π0_unemp*H_ue 
+        π1_unemp = π0_emp*H_eu + (1-p_θ)*π0_unemp*H_uu
+        π1_emp = π1_emp/sum(π1_emp)
+        π1_unemp = π1_unemp/sum(π1_unemp)
+        diff_emp = norm(π1_emp-π0_emp,Inf)
+        diff_unemp = norm(π1_unemp-π0_unemp,Inf)
         π0_emp = π1_emp
         π0_unemp = π1_unemp
+        iter = iter + 1
+        println(iter) 
     end
+
     π_emp   = π0_emp 
     π_unemp = π0_unemp 
 
