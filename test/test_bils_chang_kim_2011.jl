@@ -274,4 +274,17 @@ H_ee, H_eu, H_ue, H_uu = InitializeTransitionMatrices(para, emp_policy, unemp_po
 # ######################################################################
 # Test SolveEquilibrium() 
 para = ModelParams() 
-para, θ, W, U, J, emp_policy, unemp_policy, wage, x_star, π_emp, π_unemp = SolveEquilibrium(para::ModelParams)
+para, θ, W, U, J, emp_policy, unemp_policy, wage, x_star, π_emp, π_unemp = SolveEquilibrium(para::ModelParams) 
+
+# Save objects externally 
+using DelimitedFiles
+writedlm( "bils_chang_kim_2011/data/theta.csv",  θ, ',')
+writedlm( "bils_chang_kim_2011/data/W.csv",  W, ',')
+writedlm( "bils_chang_kim_2011/data/U.csv",  U, ',')
+writedlm( "bils_chang_kim_2011/data/J.csv",  J, ',')
+writedlm( "bils_chang_kim_2011/data/emp_policy.csv",  emp_policy, ',')
+writedlm( "bils_chang_kim_2011/data/unemp_policy.csv",  unemp_policy, ',')
+writedlm( "bils_chang_kim_2011/data/wage.csv",  wage, ',')
+writedlm( "bils_chang_kim_2011/data/x_star.csv",  x_star, ',')
+writedlm( "bils_chang_kim_2011/data/pi_emp.csv",  π_emp, ',')
+writedlm( "bils_chang_kim_2011/data/pi_unemp.csv",  π_unemp, ',')
