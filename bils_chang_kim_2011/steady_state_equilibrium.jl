@@ -489,9 +489,9 @@ end;
 @doc """
     FindStationaryMeasures(para::ModelParams, emp_policy, unemp_policy)
 """ 
-function FindStationaryMeasures(para::ModelParams,  emp_policy, unemp_policy)
+function FindStationaryMeasures(para::ModelParams,  emp_policy, unemp_policy, x_star)
 
-    H_emp, H_unemp = ConstructTransitionMatrices(para, emp_policy, unemp_policy)
+    H_emp, H_unemp = ConstructTransitionMatrices(para, emp_policy, unemp_policy, x_star)
     N_emp = size(H_emp)[1]
     π0_emp = ones(1,N_emp)/N_emp
     N_unemp = size(H_unemp)[1]
@@ -506,8 +506,10 @@ function FindStationaryMeasures(para::ModelParams,  emp_policy, unemp_policy)
         π0_emp = π1_emp
         π0_unemp = π1_unemp
     end
+    π_emp   = π0_emp 
+    π_unemp = π0_unemp 
 
-    return π0_emp, π0_unemp
+    return π_emp, π_unemp
 end;
 
 # ######################################################################
