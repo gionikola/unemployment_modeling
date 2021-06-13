@@ -67,13 +67,17 @@ xgrid = para.xgrid
 N_a = length(agrid)
 N_x = length(xgrid) 
 ## Plot value of employment for each x
-fig1 = plot();
+fig1 = plot(title = "Asset Policy Under Employment");
 for i in 1:9
-    plot!(fig1, agrid, emp_policy[:,i]);
+    plot!(fig1, agrid, emp_policy[:,i], label="x=$(round(xgrid[i],digits=2))");
 end 
+xlabel!("Current Assets");
+ylabel!("Future Assets");
 ## Plot value of unemployment for each x 
-fig2 = plot();
-plot!(fig2, agrid, unemp_policy);
+fig2 = plot(title = "Asset Policy Under Unemployment");
+plot!(fig2, agrid, unemp_policy, label="");
+xlabel!("Current Assets");
+ylabel!("Future Assets");
 ## Plot value of firm-worker match for each x 
 fig3 = plot(title = "Matched Firm Value");
 for i in 1:9

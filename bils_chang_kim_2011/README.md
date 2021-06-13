@@ -2,13 +2,9 @@
 
 by Mark Bils, Yongsung Chang, and Sun-Bin Kim
 
----
-
 **Abstract:** We model worker heterogeneity in the rents from being employed in a Diamond-Mortensen-Pissarides model of matching and unemployment. 
 We show that heterogeneity, reflecting differences in match quality and worker assets, reduces the extent of fluctuations in separations and unemployment. 
 We find that the model faces a trade-off -- it cannot produce both realistic dispersion in wage growth across workers and realistic cyclical fluctuations in unemployment. 
-
----
 
 ## **1. Directory Roadmap**
 
@@ -20,8 +16,6 @@ The following is a description of all files in this directory:
 This approach is considerably slower than the purely discrete approach in `steady_state_equilibrium.jl`, so I have given up on developing it further. 
 
 - `generate_figures.jl` -- solves for the steady state equilibrium of the model using the routines in `steady_state_equilibrium.jl`, saves all relevant equilibrium objects in the `\data` subfolder, and recreates the figures in the paper as `.png` files stored in the `\figures` subfolder. 
-
----
 
 ## **2. Function Descriptions** 
 
@@ -92,16 +86,34 @@ The output of the function is simply an updated value of the market tightness pa
 - `SolveEquilibrium` -- This function applies the full steady state algorithm presented in Section A of the Annex.
 It only requires an initial set of model parameters as an input, and returns all equilibrium objects. 
 
-- `Aggregate` -- 
-
----
-
-## **3. Replication Outline** 
+## **3. Replication Overview** 
 
 
----
-## **4. Replicated Figures** 
+
+![](../bils_chang_kim_2011/figures/fig1.png)
 
 
----
-## **5. Comments**
+
+![](../bils_chang_kim_2011/figures/fig2.png)
+
+
+
+![](../bils_chang_kim_2011/figures/fig3.png)
+
+
+
+![](../bils_chang_kim_2011/figures/fig4.png)
+
+
+
+![](../bils_chang_kim_2011/figures/fig5.png)
+
+
+
+![](../bils_chang_kim_2011/figures/fig6.png)
+
+
+
+![](../bils_chang_kim_2011/figures/fig7.png)
+
+## **4. Comments**
