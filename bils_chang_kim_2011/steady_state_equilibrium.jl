@@ -489,7 +489,6 @@ function FindStationaryMeasures(para::ModelParams,  emp_policy, unemp_policy, x_
     π0_unemp = ones(1,N_unemp)/N_unemp
     diff_emp = 1.
     diff_unemp = 1.
-    iter = 0
     while diff_emp > 1e-10 && diff_unemp > 1e-10
         π1_emp = π0_emp*H_ee + p_θ*π0_unemp*H_ue 
         π1_unemp = π0_emp*H_eu + (1-p_θ)*π0_unemp*H_uu
@@ -499,8 +498,6 @@ function FindStationaryMeasures(para::ModelParams,  emp_policy, unemp_policy, x_
         diff_unemp = norm(π1_unemp-π0_unemp,Inf)
         π0_emp = π1_emp
         π0_unemp = π1_unemp
-        iter = iter + 1
-        println(iter) 
     end
 
     π_emp   = π0_emp 
@@ -514,5 +511,39 @@ end;
 # ######################################################################
 # ######################################################################
 # 
+@doc """
+    AdjustTheta(para::ModelParams, J)
+""" 
+function AdjustTheta(para::ModelParams, J, π_unemp)
 
+    @unpack κ, β, η, α, agrid = para 
+
+    N_a = length(agrid) 
+    
+    # integral of J over ψ is the dot product of 
+    # J(:,x̄) and π_unemp(N_a*x̄-1:N_a*x̄)
+    int_J = dot(J[:,5],π_unemp[(N_a*(4)+1):N_a*(5)])
+    θ_new = ( κ/( β*η*int_J ) )^(1/(α-1))
+
+    return θ_new  
+end 
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# 
+@doc """
+    SolveEquilibrium(para::ModelParams)
+""" 
+function SolveEquilibrium(para::ModelParams)
+
+    
+
+end 
+
+# ######################################################################
+# ######################################################################
+# ######################################################################
+# ######################################################################
 #end 
