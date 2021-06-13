@@ -432,32 +432,53 @@ end;
 # ######################################################################
 # 
 @doc """
-    ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy)
+    ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
 """ 
-function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy)
+function ConstructTransitionMatrices(para::ModelParams, emp_policy, unemp_policy, x_star)
 
     @unpack agrid, xgrid, π_x = para
-
     N_x = length(xgrid)
     N_a = length(agrid)
-
     H_emp = spzeros(N_a*N_x,N_a*N_x) 
-    
-    for a_i in 1:N_a
+    H_unemp = spzeros(N_a*N_x,N_a*N_x) 
+    ### Fill out the employment matrix
+    Threads.@threads for a_i in 1:N_a
         for x_i in 1:N_x
-
             j = a_i+N_a*(x_i-1) # index for (a,x)
-            a_i′ = emp_policy[a_i,x_i] # index for a′
-
+            a_emp = emp_policy[a_i,x_i] # index for a′ given employment
+            a_unemp = unemp_policy[a_i,x_i] # index for a′ given unemployment 
+            x′_star = x_star[a_emp] # value of x′_star under employment  
             for x_i′ in 1:N_x
-
-                j′ = a_i′+N_a*(x_i′-1) # index for (a′,x′)
-                H_emp[j,j′] = π_x[x_i′] # prob. of (a,x) → (a′,x′)
+                j′ = a_emp+N_a*(x_i′-1) # index for (a′,x′) given employment
+                if xgrid[x_i′] > x′_star # if x′ is above reservation x
+                    H_emp[j,j′] = H_emp[j,j′] + π_x[x_i′] # prob. of (a,x) → (a′,x′) given employment
+                end 
+                j′ = a_unemp+N_a*(x_i′-1) # index for (a′,x′) given unemployment 
+                if x_i′ == 5 # if x′ = x̄ (x̄ is the middle (5th) entry of xgrid)
+                    H_emp[j,j′] = H_emp[j,j′] + p_θ*π_x[x_i′] # prob. of (a,x) → (a′,x′) given employment
+                end 
             end
         end
     end
-  
-    return H_emp
+    ### Fill out the unemployment matrix 
+    Threads.@threads for a_i in 1:N_a
+        for x_i in 1:N_x
+            j = a_i+N_a*(x_i-1) # index for (a,x)
+            a_emp = emp_policy[a_i,x_i] # index for a′ given employment
+            a_unemp = unemp_policy[a_i,x_i] # index for a′ given unemployment 
+            x′_star = x_star[a_emp] # value of x′_star under employment  
+            for x_i′ in 1:N_x
+                j′ = a_emp+N_a*(x_i′-1) # index for (a′,x′) given employment
+                if xgrid[x_i′] < x′_star # if x′ is above reservation x
+                    H_unemp[j,j′] = H_unemp[j,j′] + π_x[x_i′] # prob. of (a,x) → (a′,x′) given employment
+                end 
+                j′ = a_unemp+N_a*(x_i′-1) # index for (a′,x′) given unemployment 
+                H_unemp[j,j′] = H_unemp[j,j′] + (1-p_θ)*π_x[x_i′] # prob. of (a,x) → (a′,x′) given employment
+            end
+        end
+    end
+
+    return H_emp, H_unemp 
 end;
 
 # ######################################################################
